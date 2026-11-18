@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Пикабу Нейро · быстрые действия — прототип</title>
+<link rel="icon" href="assets/neuro.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-v="1">
+
+<!-- Панель прототипа (не часть интерфейса Пикабу) -->
+<div class="demo">
+  <div class="demo__in">
+    <div class="demo__row">
+      <b class="demo__title">Пикабу Нейро · быстрые действия <span>прототип</span></b>
+      <div class="demo__group">
+        <button data-v="1">1 · Как в макете</button>
+        <button data-v="2">2 · Лента диалога</button>
+        <button data-v="3">3 · Боковая панель</button>
+        <button data-v="4">4 · Компакт</button>
+      </div>
+      <button class="demo__reset" id="reset" type="button">↺ Сначала</button>
+    </div>
+    <p class="demo__desc" id="desc"></p>
+  </div>
+</div>
+
+<div class="zoom" id="zoom">
+  <header class="pk-header">
+    <div class="pk-header__in">
+      <a class="logo" href="#"><img class="logo__cake" src="assets/logo-cake.svg" alt=""><img class="logo__text" src="assets/logo-text.svg" alt="пикабу"></a>
+      <nav class="pk-nav">
+        <a class="is-on">Горячее</a><a>Лучшее</a><a>Свежее</a><a>Подписки <i class="counter counter--alert">9+</i></a><a>Сообщества</a><a>Блоги <i class="counter counter--alert">3</i></a><a>Темы</a>
+      </nav>
+      <div class="pk-header__right">
+        <span class="search-ph"></span>
+        <span class="hbtn"><img src="assets/search.svg" alt=""></span>
+        <span class="hbtn"><img src="assets/plus.svg" alt=""></span>
+        <span class="hbtn"><img src="assets/bell.svg" alt=""></span>
+        <img class="avatar" src="assets/avatar.png" alt="">
+      </div>
+    </div>
+  </header>
+
+  <main class="pk-grid">
+    <div class="feed" id="feed"><!-- посты рисует app.js --></div>
+
+    <aside class="side">
+      <section class="side__card">
+        <div class="profile">
+          <img src="assets/avatar.png" alt="">
+          <div><b>PikabuDSGN</b><span class="coins">● 2 500</span></div>
+        </div>
+        <span class="shop">магазин ↗</span>
+      </section>
+      <section class="side__card">
+        <div class="side__row"><b>Задания</b><a>Все</a></div>
+        <div class="task"><b>Посмотреть 5 постов в Горячем</b><span>+10</span><small>Задание дня · Лёгкое · <em>x2 монет</em></small></div>
+      </section>
+      <section class="side__card side__stats">
+        <p><b>8 998</b> рейтинг</p><p><b>127</b> подписчиков</p><p><b>680</b> в топе авторов</p>
+      </section>
+      <section class="side__card side__menu">
+        <a>Ответы <i class="counter">99</i></a><a>Комментарии</a><a>Оценки</a><a>Сохраненные</a><a>Просмотренное</a><a>Управление подписками</a><a>Черновики</a>
+      </section>
+    </aside>
+  </main>
+</div>
+
+<!-- Вариант 3: боковая панель Нейро -->
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <div class="drawer__head">
+    <img src="assets/neuro.svg" alt="" width="24" height="24">
+    <div><b>Пикабу Нейро</b><span id="drawerPost"></span></div>
+    <button class="drawer__x" id="drawerClose" type="button" aria-label="Закрыть"><img src="assets/close.svg" alt=""></button>
+  </div>
+  <div class="drawer__body" id="drawerBody"></div>
+</aside>
+
+<div class="toast" id="toast" role="status"></div>
+<script src="app.js"></script>
+</body>
+</html>
