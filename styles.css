@@ -238,3 +238,11 @@ a { cursor: pointer; }
   .drawer { width: 100%; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+/* своё поле вопроса: состояние «Нейро отвечает» и кнопка перехода в Нейро */
+.ask.is-busy .ask__row { opacity: 0.6; }
+.ask.is-busy button { cursor: default; background: #99a5ff; }
+.goneuro { align-self: flex-start; padding: 6px 12px; border-radius: 12px; background: var(--n); color: #f7f8ff; font-size: 12px; line-height: 16px; font-weight: 500; }
+.panel--compact .goneuro { margin: 0 8px; }
+.cq { align-self: flex-end; margin: 0 8px; padding: 6px 12px; border-radius: 16px; background: var(--n-user); color: var(--clear); font-size: 13px; line-height: 20px; }
+.panel--compact .ask { padding: 0 8px 10px; }

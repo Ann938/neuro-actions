@@ -11,7 +11,10 @@
     comments: { t: "Главное в комментариях", q: "Что обсуждают в комментариях?", load: "Читаю комментарии и ищу главное…" },
     simple: { t: "Объяснить проще", q: "Объясни проще", load: "Подбираю слова попроще…" },
     facts: { t: "Проверить факты", q: "Проверь факты в посте", load: "Сверяю факты с источниками…" },
+    custom: { t: "Ваш вопрос", q: "", load: "Думаю над вашим вопросом…" },
   };
+  // ответ на свой вопрос: в прототипе Нейро не отвечает по-настоящему, а предлагает продолжить в чате — как в подписи под полем в макете
+  const CUSTOM = "Хороший вопрос! Отвечу подробно в Пикабу Нейро — ваш вопрос и вся эта переписка уже будут там, можно продолжить разговор.";
 
   // ---------- посты ленты (тексты постов — из макета) ----------
   const POSTS = [
@@ -73,10 +76,10 @@
   ];
 
   const DESC = {
-    1: "<b>Как в макете.</b> У каждого поста сначала одна кнопка: длинный пост — «Кратко о посте», короткий с обсуждением — «Главное в комментариях». Нажмите: Нейро «читает», отвечает, и появляются остальные табы. Повторное нажатие на активный таб сворачивает ответ. Раскройте первый пост полностью — внизу появятся табы для прочитавших.",
+    1: "<b>Как в макете.</b> У каждого поста сначала одна кнопка: длинный пост — «Кратко о посте», короткий с обсуждением — «Главное в комментариях». Нажмите: Нейро «читает», отвечает, и появляются остальные табы. Повторное нажатие на активный таб сворачивает ответ. Раскройте первый пост полностью — внизу появятся табы для прочитавших. В каждом варианте можно задать свой вопрос в поле под ответом.",
     2: "<b>Лента диалога.</b> Ответы не заменяют друг друга, а копятся в одном чате, как переписка. Под последним ответом — подсказки «Спросить ещё», табы сверху отмечают, что уже спрашивали.",
     3: "<b>Боковая панель.</b> Табы остаются в посте, а разговор с Нейро открывается справа поверх сайдбара — пост можно читать рядом с ответом. Табы продублированы в панели.",
-    4: "<b>Компакт.</b> Табы переезжают в шапку карточки, вместо отдельной строки «думаю» — мерцающий скелетон ответа. Длинный ответ свёрнут до нескольких строк, своё поле вопроса появляется по кнопке «Спросить своё».",
+    4: "<b>Компакт.</b> Табы переезжают в шапку карточки, вместо отдельной строки «думаю» — мерцающий скелетон ответа. Длинный ответ свёрнут до нескольких строк, внизу карточки — поле своего вопроса.",
   };
 
   // ---------- состояние ----------
@@ -104,8 +107,8 @@
     st.ask = false;
     if (v === 2 || v === 3) {
       // в ленте диалога и панели ответы копятся
-      if (st.done[act] && st.log.some((m) => m.act === act)) { st.phase = "done"; renderAll(); scrollToMsg(pid, act); return; }
-      st.log.push({ act, text: "", typing: true });
+      if (act !== "custom" && st.done[act] && st.log.some((m) => m.act === act)) { st.phase = "done"; renderAll(); scrollToMsg(pid, act); return; }
+      st.log.push({ act, q: act === "custom" ? st.customQ : "", text: "", typing: true });
     }
     st.phase = "loading";
     if (v === 3) drawerFor = pid;
@@ -114,7 +117,7 @@
   }
   function type(pid, act) {
     const st = state[pid], p = POSTS.find((x) => x.id === pid);
-    const full = p.answers[act];
+    const full = act === "custom" ? CUSTOM : p.answers[act];
     st.phase = "typing";
     let i = 0;
     const step = () => {
@@ -153,9 +156,9 @@
   const dots = `<span class="dots"><i></i><i></i><i></i></span>`;
   const loadingRow = (pid, act) => `<div class="loadrow">${dots}<span>${ACTIONS[act].load}</span><button class="stopbtn" data-stop="${pid}" type="button" aria-label="Остановить"><img src="${A}stop.svg" alt=""></button></div>`;
   const hints = (p) => `<div class="hints"><b>Хотите узнать больше в Нейро?</b>${p.hints.map((h) => `<a class="hint" data-hint="${esc(h)}"><img src="${A}dot.svg" alt=""><span>${esc(h)}</span><img src="${A}ext.svg" alt=""></a>`).join("")}</div>`;
-  const input = (pid) => `<form class="ask" data-ask="${pid}"><div class="ask__row"><input type="text" placeholder="Что хотите узнать об этом посте?" aria-label="Вопрос Нейро"><button type="submit" aria-label="Отправить"><img src="${A}send.svg" alt=""></button></div><p>Откроется чат в Пикабу Нейро. Ваш вопрос и эта переписка уже будут там</p></form>`;
-  const aiMsg = (text, done, typing) => `<div class="ai"><div class="ai__msg">${para(text)}${typing ? '<i class="cursor"></i>' : ""}${done ? '<small>ИИ может ошибаться. Проверяйте важную информацию</small>' : ""}</div>${done ? `<button class="copy" data-copy type="button" aria-label="Скопировать"><img src="${A}copy.svg" alt=""></button>` : ""}</div>`;
-  const userMsg = (act) => `<div class="me"><span>${ACTIONS[act].q}</span></div>`;
+  const input = (pid, busy) => `<form class="ask${busy ? " is-busy" : ""}" data-ask="${pid}"><div class="ask__row"><input type="text" placeholder="${busy ? "Нейро отвечает…" : "Что хотите узнать об этом посте?"}" aria-label="Вопрос Нейро"${busy ? " disabled" : ""}><button type="submit" aria-label="Отправить"${busy ? " disabled" : ""}><img src="${A}send.svg" alt=""></button></div><p>Откроется чат в Пикабу Нейро. Ваш вопрос и эта переписка уже будут там</p></form>`;
+  const aiMsg = (text, done, typing, act) => `<div class="ai"><div class="ai__msg">${para(text)}${typing ? '<i class="cursor"></i>' : ""}${done && act === "custom" ? '<button class="goneuro" data-neuro type="button">Продолжить в Пикабу Нейро ↗</button>' : ""}${done ? '<small>ИИ может ошибаться. Проверяйте важную информацию</small>' : ""}</div>${done ? `<button class="copy" data-copy type="button" aria-label="Скопировать"><img src="${A}copy.svg" alt=""></button>` : ""}</div>`;
+  const userMsg = (act, q) => `<div class="me"><span>${esc(act === "custom" ? q || "" : ACTIONS[act].q)}</span></div>`;
 
   // ---------- вариант 1 «как в макете» и 2 «лента» ----------
   function panelV1(p, st) {
@@ -163,14 +166,15 @@
     if (!act) return "";
     if (st.phase === "loading") return `<div class="panel panel--load">${loadingRow(p.id, act)}</div>`;
     const done = st.phase === "done";
-    return `<div class="panel" data-panel="${p.id}"><div class="chat">${userMsg(act)}<div data-live>${aiMsg(st.phase === "typing" ? st.cur || "" : p.answers[act], done, st.phase === "typing")}</div>${done ? hints(p) : ""}</div>${input(p.id)}</div>`;
+    const ans = act === "custom" ? CUSTOM : p.answers[act];
+    return `<div class="panel" data-panel="${p.id}"><div class="chat">${userMsg(act, st.customQ)}<div data-live>${aiMsg(st.phase === "typing" ? st.cur || "" : ans, done, st.phase === "typing", act)}</div>${done && act !== "custom" ? hints(p) : ""}</div>${input(p.id, !done)}</div>`;
   }
   function panelV2(p, st) {
     if (!st.log.length) return "";
-    const msgs = st.log.map((m) => `<div class="turn" data-turn="${m.act}">${userMsg(m.act)}${m.typing && st.phase === "loading" ? `<div class="ai"><div class="ai__msg ai__think">${dots}<span>${ACTIONS[m.act].load}</span><button class="stopbtn" data-stop="${p.id}" type="button" aria-label="Остановить"><img src="${A}stop.svg" alt=""></button></div></div>` : `<div ${m.typing ? "data-live" : ""}>${aiMsg(m.text, !m.typing, m.typing)}</div>`}</div>`).join("");
+    const msgs = st.log.map((m) => `<div class="turn" data-turn="${m.act}">${userMsg(m.act, m.q)}${m.typing && st.phase === "loading" ? `<div class="ai"><div class="ai__msg ai__think">${dots}<span>${ACTIONS[m.act].load}</span><button class="stopbtn" data-stop="${p.id}" type="button" aria-label="Остановить"><img src="${A}stop.svg" alt=""></button></div></div>` : `<div ${m.typing ? "data-live" : ""}>${aiMsg(m.text, !m.typing, m.typing, m.act)}</div>`}</div>`).join("");
     const left = st.shown.filter((a) => !st.log.some((m) => m.act === a));
     const sugg = st.phase === "done" && left.length ? `<div class="sugg"><span>Спросить ещё:</span>${left.map((a) => tabBtn(p.id, a, false, "top", " tab--ghost")).join("")}</div>` : "";
-    return `<div class="panel panel--chat" data-panel="${p.id}"><div class="chat" data-scroll>${msgs}${sugg}${st.phase === "done" ? hints(p) : ""}</div>${input(p.id)}</div>`;
+    return `<div class="panel panel--chat" data-panel="${p.id}"><div class="chat" data-scroll>${msgs}${sugg}${st.phase === "done" ? hints(p) : ""}</div>${input(p.id, st.phase !== "done")}</div>`;
   }
   // ---------- вариант 4 «компакт» ----------
   function panelV4(p, st) {
@@ -179,10 +183,10 @@
     const tabs = st.shown.map((a) => `<button class="seg${a === act ? " is-on" : ""}" data-act="${a}" data-pid="${p.id}" data-slot="top" type="button">${ACTIONS[a].t}</button>`).join("");
     const body = st.phase === "loading"
       ? `<div class="skel"><span>${ACTIONS[act].load}</span><i></i><i></i><i style="width:62%"></i></div>`
-      : `<div class="cbody${st.compactOpen || st.phase === "typing" ? " is-open" : ""}" data-live>${para(st.phase === "typing" ? st.cur || "" : p.answers[act])}</div>${st.phase === "done" && p.answers[act].length > 260 && !st.compactOpen ? `<button class="more" data-more="${p.id}" type="button">Развернуть ответ</button>` : ""}`;
+      : `${act === "custom" ? `<div class="cq">${esc(st.customQ || "")}</div>` : ""}<div class="cbody${st.compactOpen || st.phase === "typing" ? " is-open" : ""}" data-live>${para(st.phase === "typing" ? st.cur || "" : act === "custom" ? CUSTOM : p.answers[act])}</div>${st.phase === "done" && act === "custom" ? '<button class="goneuro" data-neuro type="button">Продолжить в Пикабу Нейро ↗</button>' : ""}${st.phase === "done" && act !== "custom" && p.answers[act].length > 260 && !st.compactOpen ? `<button class="more" data-more="${p.id}" type="button">Развернуть ответ</button>` : ""}`;
     const foot = st.phase === "done"
-      ? `<div class="cfoot"><small>ИИ может ошибаться</small><button class="copy" data-copy type="button" aria-label="Скопировать"><img src="${A}copy.svg" alt=""></button><button class="askbtn" data-askopen="${p.id}" type="button">Спросить своё</button></div>${st.ask ? input(p.id) : ""}`
-      : st.phase === "loading" ? `<div class="cfoot"><button class="stopline" data-stop="${p.id}" type="button"><img src="${A}stop.svg" alt="">Остановить</button></div>` : "";
+      ? `<div class="cfoot"><small>ИИ может ошибаться. Проверяйте важную информацию</small><button class="copy" data-copy type="button" aria-label="Скопировать"><img src="${A}copy.svg" alt=""></button></div>${input(p.id)}`
+      : st.phase === "loading" ? `<div class="cfoot"><small></small><button class="stopline" data-stop="${p.id}" type="button"><img src="${A}stop.svg" alt="">Остановить</button></div>${input(p.id, true)}` : input(p.id, true);
     return `<div class="panel panel--compact" data-panel="${p.id}"><div class="chead"><img src="${A}neuro.svg" alt=""><div class="segs">${tabs}</div><button class="cx" data-collapse="${p.id}" type="button" aria-label="Свернуть"><img src="${A}close.svg" alt=""></button></div>${body}${foot}</div>`;
   }
 
@@ -292,7 +296,12 @@
     if (!f) return;
     e.preventDefault();
     const q = f.querySelector("input").value.trim();
-    toast(q ? `Откроется чат в Пикабу Нейро с вопросом «${q}» и этой перепиской` : "Напишите вопрос — он откроется в Пикабу Нейро");
+    if (!q) { f.querySelector("input").focus(); toast("Напишите свой вопрос о посте"); return; }
+    const pid = f.dataset.ask, st = state[pid];
+    if (st.phase === "loading" || st.phase === "typing") return;
+    st.customQ = q;
+    if (v === 4) st.compactOpen = false;
+    run(pid, "custom", st.slot === "after" ? "after" : "top");
   });
 
   // ---------- переключение вариантов ----------
